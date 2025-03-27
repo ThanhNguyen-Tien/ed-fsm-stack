@@ -49,8 +49,7 @@ static inline void EventQueue_ExecuteEvent(event_t* ev)
 	{
 		if(ev->size > engine.eventQueue.maxEvSize)
 		{
-			DISABLE_INTERRUPT;
-			while (1){}
+			Error_Handler();
 		}
 		EventQueue_PopData(engine.eventQueue.dataBuf, ev->size);
 		ev->handler(engine.eventQueue.dataBuf);
