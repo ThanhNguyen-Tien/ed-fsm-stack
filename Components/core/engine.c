@@ -2,6 +2,7 @@
 #include "system.h"
 
 engine_t engine;
+monitor_cpu_t monitor = {0, 0, 0, 0.0f};
 
 //Function Prototypes
 static void Engine_ExecuteTask();
@@ -29,10 +30,26 @@ void Engine_Init(uint8_t* buf, uint16_t size, uint8_t* dataBuf, uint8_t maxEvSiz
 
 void Engine_Run()
 {
+	DWT_Init();
+	monitor.last_cycle = DWT->CYCCNT;
 	while(1)
 	{
 		if(Event_Loop())continue;
+
+		uint32_t wfi_start = DWT->CYCCNT;
 		WAIT_FOR_INTERUPT;
+		monitor.wfi_cycles += (DWT->CYCCNT - wfi_start);
+
+        uint32_t current_cycle = DWT->CYCCNT;
+        monitor.total_cycles += (current_cycle - monitor.last_cycle);
+        monitor.last_cycle = current_cycle;
+
+        if (monitor.total_cycles >= HAL_RCC_GetSysClockFreq()) // 1 second
+        {
+            monitor.cpu_usage = 100.0f * (1.0f - ((float)monitor.wfi_cycles / monitor.total_cycles));
+            monitor.total_cycles = 0;
+            monitor.wfi_cycles = 0;
+        }
 	}
 }
 

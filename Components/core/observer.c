@@ -1,6 +1,4 @@
 #include "observer.h"
-#include <stddef.h>
-#include <assert.h>
 
 void Observer_InitSubject(obs_subject_t* sub, uint8_t sizeOfData)
 {

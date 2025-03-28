@@ -85,9 +85,6 @@ void Test_Init()
 M_TASK_HANDLER(timeout)
 {
 	SM_POST(test, TIMEOUT);
-	static uint64_t count = 0;
-	count++;
-//	Observer_Notify(&encoderDataSubject, &count);
 	M_EVENT_POST(empty);
 }
 

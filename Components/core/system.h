@@ -19,5 +19,6 @@ extern event_t* evPool[EVENT_POOL_SIZE];
 
 extern void SystemClock_Config();
 void System_Init();
+void DWT_Init(void);
 
 #endif // SYSTEM_H

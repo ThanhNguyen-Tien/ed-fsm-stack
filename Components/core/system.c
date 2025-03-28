@@ -16,5 +16,10 @@ void System_Init()
 	SystemClock_Config();
 }
 
-
+void DWT_Init(void)
+{
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Bật Debug Exception and Monitor Control
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;           // Bật Cycle Counter
+    DWT->CYCCNT = 0;                               // Reset Counter
+}
 

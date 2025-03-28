@@ -3,14 +3,23 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <assert.h>
 
 typedef void (*EventHandler)(void*);
 
+typedef struct EvTimeExecution{
+    uint32_t min_time;
+    uint32_t max_time;
+    uint32_t last_exec_time;
+} event_time_exe_t;
+
 typedef struct Event
 {
+	event_time_exe_t time;
+	EventHandler handler;
 	uint8_t size;
 	uint8_t index;
-	EventHandler handler;
 }event_t;
 
 typedef struct EventQueue

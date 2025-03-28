@@ -4,14 +4,14 @@
 #include <string.h>
 
 /// @brief STATIC FUNCTION
-static inline void EventQueue_Push_(uint8_t val)
+static inline void EventQueue_Push(uint8_t val)
 {
 	*(engine.eventQueue.inPtr) = val;
 	engine.eventQueue.inPtr++;
 	if (engine.eventQueue.inPtr == engine.eventQueue.last) {engine.eventQueue.inPtr = engine.eventQueue.first;}
 }
 
-static inline uint8_t EventQueue_Pop_()
+static inline uint8_t EventQueue_Pop()
 {
 	uint8_t ret = *(engine.eventQueue.outPtr);
 	engine.eventQueue.outPtr++;
@@ -47,10 +47,8 @@ static inline void EventQueue_ExecuteEvent(event_t* ev)
 	}
 	else
 	{
-		if(ev->size > engine.eventQueue.maxEvSize)
-		{
-			Error_Handler();
-		}
+		assert(ev->size <= engine.eventQueue.maxEvSize);
+
 		EventQueue_PopData(engine.eventQueue.dataBuf, ev->size);
 		ev->handler(engine.eventQueue.dataBuf);
 		memset(engine.eventQueue.dataBuf, 0, ev->size);
@@ -60,32 +58,41 @@ static inline void EventQueue_ExecuteEvent(event_t* ev)
 /// @brief PUBLIC FUNCTION
 static uint8_t Event_Register_(event_t* event)
 {
+	assert(event != NULL);
+	assert(engine.eventQueue.poolSize - 1 < engine.eventQueue.maxPoolSize);
 	engine.eventQueue.events[engine.eventQueue.poolSize - 1] = event;
-	if (engine.eventQueue.poolSize - 1 >= engine.eventQueue.maxPoolSize)
-	{
-		DISABLE_INTERRUPT;
-		while (1){}
-	}
 	return engine.eventQueue.poolSize++;
 }
 
 inline bool Event_Loop()
 {
 	if(engine.eventQueue.inPtr == engine.eventQueue.outPtr) return false;
-	uint8_t index = EventQueue_Pop_();
-	if(index < engine.eventQueue.poolSize)
-	{
-		event_t * e = engine.eventQueue.events[index - 1];
-		EventQueue_ExecuteEvent(e);
-	}
+	uint8_t index = EventQueue_Pop();
+	assert(index < engine.eventQueue.poolSize);
+
+	event_t * e = engine.eventQueue.events[index - 1];
+
+	uint32_t exec_start = DWT->CYCCNT;
+	EventQueue_ExecuteEvent(e);
+	e->time.last_exec_time = DWT->CYCCNT - exec_start ;
+
+	if (e->time.last_exec_time > e->time.max_time)
+		e->time.max_time = e->time.last_exec_time;
+	if (e->time.last_exec_time < e->time.min_time)
+		e->time.min_time = e->time.last_exec_time;
+
 	return true;
 }
 
 void Event_Init(event_t* ev, uint8_t size, EventHandler handler)
 {
+	assert(ev != NULL);
 	ev->size = size;
 	ev->handler = handler;
 	ev->index = Event_Register_(ev);
+	ev->time.last_exec_time = 0;
+	ev->time.max_time = 0;
+	ev->time.min_time = UINT32_MAX;
 }
 
 inline bool Event_Post(uint8_t index, void* data)
@@ -94,13 +101,13 @@ inline bool Event_Post(uint8_t index, void* data)
 	uint8_t* ptr = (uint8_t *)data;
 	uint16_t avail = engine.eventQueue.size - 1 + engine.eventQueue.outPtr - engine.eventQueue.inPtr;
 	if(avail > engine.eventQueue.size) {avail -= engine.eventQueue.size;}
-	if(avail < engine.eventQueue.events[index]->size + 1) return false;
+	if(avail < engine.eventQueue.events[index - 1]->size + 1) return false;
 
 	if(avail < engine.eventQueue.minFree) engine.eventQueue.minFree = avail;
 
 	DISABLE_INTERRUPT;
 
-	EventQueue_Push_(index);
+	EventQueue_Push(index);
 	if(engine.eventQueue.events[index - 1]->size != 0)
 	{
 	    if (engine.eventQueue.inPtr + engine.eventQueue.events[index - 1]->size <= engine.eventQueue.last)

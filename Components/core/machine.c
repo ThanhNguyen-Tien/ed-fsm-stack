@@ -1,10 +1,10 @@
 #include "machine.h"
-#include <stddef.h>
 
 static void Machine_NullState(machine_t* m){}
 
 void Machine_Init(machine_t *m)
 {
+	assert(m != NULL);
 	m->nextState = &Machine_NullState;
 	m->currentState = &Machine_NullState;
 	m->nextEvent = 0;
@@ -29,6 +29,7 @@ inline void Machine_Execute(void* msg)
 
 void Machine_PostEvent(machine_t* m, uint8_t event)
 {
+	assert(m != NULL);
 	machine_event_t machineEvent;
 	machineEvent.mPtr = m;
 	machineEvent.event = event;
@@ -37,6 +38,7 @@ void Machine_PostEvent(machine_t* m, uint8_t event)
 
 void Machine_Start(machine_t* m, machineState s)
 {
+	assert(m != NULL);
     m->currentState = s;
     m->nextEvent = ENTER_NEW_STATE;
     (*m->currentState)(m);
@@ -44,6 +46,7 @@ void Machine_Start(machine_t* m, machineState s)
 
 bool Machine_Check(machine_t* m, uint8_t input, machineState state)
 {
+	assert(m != NULL);
     if (m->nextEvent != input) return false;
     m->nextState = state;
     return true;

@@ -17,6 +17,13 @@ typedef struct Engine
 	uint64_t nextTick;
 }engine_t;
 
+typedef struct MonitorCpu {
+    uint32_t last_cycle;
+    uint32_t total_cycles;
+    uint32_t wfi_cycles;
+    float cpu_usage;
+} monitor_cpu_t;
+
 extern engine_t engine;
 
 void Engine_Init(uint8_t* buf, uint16_t size,
