@@ -16,7 +16,9 @@ typedef struct EvTimeExecution{
 
 typedef struct Event
 {
+#ifndef NDEBUG
 	event_time_exe_t time;
+#endif
 	EventHandler handler;
 	uint8_t size;
 	uint8_t index;

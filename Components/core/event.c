@@ -70,6 +70,7 @@ inline bool Event_Loop()
 	uint8_t index = EventQueue_Pop();
 	assert(index < engine.eventQueue.poolSize);
 
+#ifndef NDEBUG
 	event_t * e = engine.eventQueue.events[index - 1];
 
 	uint32_t exec_start = DWT->CYCCNT;
@@ -80,6 +81,10 @@ inline bool Event_Loop()
 		e->time.max_time = e->time.last_exec_time;
 	if (e->time.last_exec_time < e->time.min_time)
 		e->time.min_time = e->time.last_exec_time;
+#else
+	event_t * e = engine.eventQueue.events[index - 1];
+	EventQueue_ExecuteEvent(e);
+#endif
 
 	return true;
 }
@@ -90,9 +95,11 @@ void Event_Init(event_t* ev, uint8_t size, EventHandler handler)
 	ev->size = size;
 	ev->handler = handler;
 	ev->index = Event_Register_(ev);
+#ifndef NDEBUG
 	ev->time.last_exec_time = 0;
 	ev->time.max_time = 0;
 	ev->time.min_time = UINT32_MAX;
+#endif
 }
 
 inline bool Event_Post(uint8_t index, void* data)
@@ -103,7 +110,9 @@ inline bool Event_Post(uint8_t index, void* data)
 	if(avail > engine.eventQueue.size) {avail -= engine.eventQueue.size;}
 	if(avail < engine.eventQueue.events[index - 1]->size + 1) return false;
 
+#ifndef NDEBUG
 	if(avail < engine.eventQueue.minFree) engine.eventQueue.minFree = avail;
+#endif
 
 	DISABLE_INTERRUPT;
 

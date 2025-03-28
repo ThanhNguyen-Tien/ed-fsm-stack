@@ -2,7 +2,10 @@
 #include "system.h"
 
 engine_t engine;
+
+#ifndef NDEBUG
 monitor_cpu_t monitor = {0, 0, 0, 0.0f};
+#endif
 
 //Function Prototypes
 static void Engine_ExecuteTask();
@@ -30,6 +33,7 @@ void Engine_Init(uint8_t* buf, uint16_t size, uint8_t* dataBuf, uint8_t maxEvSiz
 
 void Engine_Run()
 {
+#ifndef NDEBUG
 	DWT_Init();
 	monitor.last_cycle = DWT->CYCCNT;
 	while(1)
@@ -51,6 +55,13 @@ void Engine_Run()
             monitor.wfi_cycles = 0;
         }
 	}
+#else
+	while(1)
+	{
+		if(Event_Loop())continue;
+		WAIT_FOR_INTERUPT;
+	}
+#endif
 }
 
 void Engine_Delay(uint32_t t)
@@ -61,6 +72,7 @@ void Engine_Delay(uint32_t t)
 
 void Engine_RegisterTask(task_t *task)
 {
+	assert(task != NULL);
 	task->nextTick = 0;
 	task->interval = 0;
 	task->loop = -1;
@@ -71,6 +83,7 @@ void Engine_RegisterTask(task_t *task)
 
 void Engine_StartTask(task_t *task)
 {
+	assert(task != NULL);
 	task_t* prev = NULL;
 	task_t* it;
 	for (it = engine.taskLists; it!= NULL; it = it->next)
@@ -90,6 +103,7 @@ void Engine_StartTask(task_t *task)
 
 void Engine_StopTask(task_t *task)
 {
+	assert(task != NULL);
 	task_t* prev = NULL;
 	task_t* it;
 	for (it = engine.activeTasks; it!=NULL; it = it->next)

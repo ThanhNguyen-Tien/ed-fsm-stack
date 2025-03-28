@@ -1,5 +1,6 @@
 #include "system.h"
 #include "engine.h"
+#include "gpio.h"
 
 uint8_t evQueue[EVENT_QUEUE_SIZE];
 uint8_t tempDataForHandler[MAX_EVENT_SIZE];
@@ -12,6 +13,7 @@ void SysTick_Handler(void)	//1ms
 
 void System_Init()
 {
+	MX_GPIO_Init();
 	HAL_Init();
 	SystemClock_Config();
 }
