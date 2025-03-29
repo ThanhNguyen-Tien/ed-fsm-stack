@@ -2,12 +2,15 @@
 
 void Observer_InitSubject(obs_subject_t* sub, uint8_t sizeOfData)
 {
+	assert(sub != NULL);
 	sub->head = NULL;
 	sub->sizeOfData = sizeOfData;
 }
 
 void Observer_InitNode(obs_node_t* obs, event_t* ev, obs_handler_type_t type)
 {
+	assert(obs != NULL);
+	assert(ev != NULL);
 	obs->ev = ev;
 	obs->type = type;
 	obs->next = NULL;
