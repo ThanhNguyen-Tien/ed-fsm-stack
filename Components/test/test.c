@@ -29,6 +29,8 @@ MACHINE(test)
 
 M_OBS_NODE(obs)
 
+M_STRAND(my, 64)
+
 // Data to plot
 int16_t sine[NUM_OF_DATA];
 int16_t cosine[NUM_OF_DATA];
@@ -69,6 +71,8 @@ void Test_Init()
 	//Start M_TASK
 	M_TASK_START(plot, 2);
 
+	M_STRAND_INIT(my);
+
 	for(int i = 0; i< NUM_OF_DATA; i++)
 	{
 		double v = ((double)i/(NUM_OF_DATA>>1)) * M_PI;
@@ -84,8 +88,12 @@ void Test_Init()
 
 M_TASK_HANDLER(timeout)
 {
+	static uint32_t count = 0;
 	SM_POST(test, TIMEOUT);
-	M_EVENT_POST(empty);
+	Strand_Post(&myStrand, &emptyEvent, NULL, NULL);
+	Strand_Delay(&myStrand, 500);
+	Strand_Post(&myStrand, &fixed2Event, NULL, &count);
+	count++;
 }
 
 M_TASK_HANDLER(plot)
@@ -112,7 +120,7 @@ M_EVENT_HANDLER(empty)
 	fake_.fake4 = sizeof(fake_);
 
 	M_EVENT_POST(fixed1, fake_);
-	M_EVENT_POST(fixed2, count);
+	Strand_Done(&myStrand);
 }
 
 M_EVENT_HANDLER(fixed1)
@@ -130,4 +138,5 @@ M_EVENT_HANDLER(fixed2)
 {
 	uint32_t* data_ = (uint32_t*) data;
 	LOG_PRINTF("[EV_H]: Fixed2 Event: %d", *data_);
+	Strand_Done(&myStrand);
 }

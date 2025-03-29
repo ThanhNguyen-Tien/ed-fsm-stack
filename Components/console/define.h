@@ -2,7 +2,7 @@
 #define CONSOLE_DEFINE_H_
 
 //CONTROLLER
-#define TIME_PLOT	5	//ms
+#define TIME_PLOT	2	//ms
 #define MAX_ONE (1<<7)
 #define MAX_TWO (1<<15)
 

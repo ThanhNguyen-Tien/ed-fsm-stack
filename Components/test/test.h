@@ -5,6 +5,7 @@
 #include <core/engine.h>
 #include <core/machine.h>
 #include <console/controller.h>
+#include <core/strand.h>
 
 M_TASK_DEF(timeout)
 
@@ -15,6 +16,8 @@ U_ACTION_DEF(a)
 U_ACTION_DEF(b)
 U_TEXT_DEF(name)
 U_INTEGER_DEF(data)
+
+M_STRAND_DEF(my)
 
 void Test_Init();
 

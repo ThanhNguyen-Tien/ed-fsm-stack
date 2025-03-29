@@ -104,7 +104,10 @@ void Event_Init(event_t* ev, uint8_t size, EventHandler handler)
 
 inline bool Event_Post(uint8_t index, void* data)
 {
+#ifdef NDEBUG
 	if(index == 0) return false;
+#endif
+	assert(index != 0);
 	uint8_t* ptr = (uint8_t *)data;
 	uint16_t avail = engine.eventQueue.size - 1 + engine.eventQueue.outPtr - engine.eventQueue.inPtr;
 	if(avail > engine.eventQueue.size) {avail -= engine.eventQueue.size;}
